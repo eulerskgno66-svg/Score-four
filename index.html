@@ -2,59 +2,61 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>立体四目 (4×4×4) vs 最強AI</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+<title>立体四目 4×4×4（回転3D）vs 最強AI</title>
 <style>
   :root{
     --bg:#0b1020; --panel:#121a33; --text:#e8eeff; --muted:#94a3c7;
-    --p1:#ffd166; --p2:#66d9ef; --grid:#243055; --accent:#7c5cff;
+    --p1:#f5c542; --p2:#111111; --accent:#7c5cff;
   }
-  body{ margin:0; background:linear-gradient(180deg,var(--bg),#070a14); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;}
-  .wrap{ max-width:1050px; margin:0 auto; padding:16px; display:grid; gap:12px; grid-template-columns: 1fr 320px;}
+  body{ margin:0; background:linear-gradient(180deg,var(--bg),#070a14); color:var(--text);
+        font-family:system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif; }
+  .wrap{ max-width:1100px; margin:0 auto; padding:14px; display:grid; gap:12px; grid-template-columns: 1fr 330px;}
   @media (max-width: 980px){ .wrap{ grid-template-columns: 1fr; } }
-  .card{ background:rgba(18,26,51,.85); border:1px solid rgba(124,92,255,.25); border-radius:14px; overflow:hidden; box-shadow:0 12px 30px rgba(0,0,0,.25); }
-  .topbar{ padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px; background:rgba(255,255,255,.03); border-bottom:1px solid rgba(255,255,255,.06); }
-  .title{ font-weight:800; letter-spacing:.5px; }
-  .sub{ color:var(--muted); font-size:12px; }
-  .canvasWrap{ position:relative; }
-  canvas{ width:100%; height:auto; display:block; background: radial-gradient(1200px 600px at 30% 20%, rgba(124,92,255,.10), transparent 55%),
-                                          radial-gradient(1000px 700px at 70% 60%, rgba(102,217,239,.08), transparent 55%); }
+  .card{ background:rgba(18,26,51,.86); border:1px solid rgba(124,92,255,.22); border-radius:14px; overflow:hidden; box-shadow:0 12px 30px rgba(0,0,0,.25); }
+  .topbar{ padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+           background:rgba(255,255,255,.03); border-bottom:1px solid rgba(255,255,255,.06); }
+  .title{ font-weight:850; letter-spacing:.4px; }
+  .sub{ color:var(--muted); font-size:12px; line-height:1.35; }
+  .pill{ padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.05);
+         border:1px solid rgba(255,255,255,.08); font-size:12px; color:var(--muted); white-space:nowrap;}
   .side{ padding:12px 14px; display:grid; gap:12px; }
   .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
   button, select{
     background:#0f1730; color:var(--text);
     border:1px solid rgba(255,255,255,.14); border-radius:10px;
-    padding:10px 12px; font-weight:650; cursor:pointer;
+    padding:10px 12px; font-weight:700; cursor:pointer;
   }
   button:hover{ border-color: rgba(124,92,255,.6); }
   button:disabled{ opacity:.5; cursor:not-allowed; }
-  .pill{ padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); font-size:12px; color:var(--muted); }
   .status{ padding:10px 12px; background:rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.08); border-radius:12px; }
   .kvs{ display:grid; gap:6px; }
   .kv{ display:flex; justify-content:space-between; gap:10px; font-size:13px; }
   .kv b{ color:var(--text); }
-  .hint{ font-size:12px; color:var(--muted); line-height:1.45; }
-  .legend{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .hint{ font-size:12px; color:var(--muted); line-height:1.5; }
+  .legend{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
   .dot{ width:10px; height:10px; border-radius:999px; display:inline-block; }
-  .p1{ background:var(--p1); box-shadow:0 0 0 2px rgba(255,209,102,.25); }
-  .p2{ background:var(--p2); box-shadow:0 0 0 2px rgba(102,217,239,.25); }
-  .footer{ padding:10px 14px; border-top:1px solid rgba(255,255,255,.06); color:var(--muted); font-size:12px; }
+  .p1{ background:var(--p1); box-shadow:0 0 0 2px rgba(245,197,66,.25); }
+  .p2{ background:var(--p2); box-shadow:0 0 0 2px rgba(255,255,255,.18); }
+  #view3d{ width:100%; height:720px; touch-action:none; } /* OrbitControlsのため */
+  @media (max-width: 980px){ #view3d{ height:560px; } }
 </style>
 </head>
+
 <body>
 <div class="wrap">
   <div class="card">
     <div class="topbar">
       <div>
-        <div class="title">立体四目 4×4×4（重力あり）</div>
-        <div class="sub">柱（16本）をタップして落とす / 直線に4つで勝ち（3D斜め全部含む）</div>
+        <div class="title">立体四目 4×4×4（重力あり / 回転3D）</div>
+        <div class="sub">棒（16本）をタップして落とす / 直線に4つで勝ち（3D斜め含む）<br>指ドラッグ：回転 / ピンチ：ズーム</div>
       </div>
       <div class="pill" id="turnPill">Turn: -</div>
     </div>
-    <div class="canvasWrap">
-      <canvas id="cv" width="980" height="720"></canvas>
+    <div id="view3d"></div>
+    <div class="sub" style="padding:10px 14px;border-top:1px solid rgba(255,255,255,.06);">
+      操作：棒の上をタップ → 駒が落ちる。勝敗後は「リセット」or「1手戻す」。
     </div>
-    <div class="footer">操作：柱をタップ → 駒が落ちる。勝敗後は「リセット」か「1手戻す」。</div>
   </div>
 
   <div class="card">
@@ -97,32 +99,34 @@
           <div class="kv"><span>状態</span><b id="statusText">準備OK</b></div>
           <div class="kv"><span>AI探索ノード</span><b id="nodeText">0</b></div>
           <div class="kv"><span>AI最終深さ</span><b id="depthText">-</b></div>
-          <div class="kv"><span>候補（上位）</span><b id="pvText">-</b></div>
+          <div class="kv"><span>AI候補</span><b id="pvText">-</b></div>
         </div>
       </div>
 
       <div class="hint">
-        ・「最強寄り」は <b>深さ6 + 反復深化</b>。<br/>
-        ・勝ち/負けが近い局面ほどかなり強い。<br/>
-        ・さらに強くしたい場合は WebWorker 化や評価関数の増強もできる（言って）。<br/>
+        ・見やすさ重視で「木の台＋太い棒＋球」表示。<br/>
+        ・指ドラッグで自由回転。タップ判定は「動かさずタップ」だと置ける。<br/>
+        ・回転したいときはそのままドラッグ。置きたいときは軽くタップ。<br/>
       </div>
     </div>
   </div>
 </div>
 
-<script>
-/** 立体四目 4x4x4 (gravity) **/
+<script type="module">
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+/* ===============================
+   ゲームロジック（AI含む）
+   =============================== */
 const N=4;
 const EMPTY=0, HUMAN=1, AI=2;
 
-// board[z][y][x]  (z:高さ 0..3 下->上)
 function makeBoard(){
   const b=[];
   for(let z=0; z<N; z++){
     const layer=[];
-    for(let y=0; y<N; y++){
-      layer.push(new Array(N).fill(0));
-    }
+    for(let y=0; y<N; y++) layer.push(new Array(N).fill(0));
     b.push(layer);
   }
   return b;
@@ -134,8 +138,6 @@ let gameOver=false;
 let current = HUMAN;
 
 // UI
-const cv=document.getElementById('cv');
-const ctx=cv.getContext('2d');
 const turnPill=document.getElementById('turnPill');
 const statusText=document.getElementById('statusText');
 const nodeText=document.getElementById('nodeText');
@@ -149,26 +151,41 @@ const thinkSel=document.getElementById('thinkSel');
 resetBtn.onclick=()=>resetGame();
 undoBtn.onclick=()=>undoMove();
 
+function setStatus(t){ statusText.textContent=t; }
+function updateTurnPill(){
+  if(gameOver){ turnPill.textContent="Game Over"; return; }
+  turnPill.textContent = "Turn: " + (current===HUMAN?"あなた":"AI");
+}
+
+function disableInput(v){
+  resetBtn.disabled=v;
+  undoBtn.disabled=v;
+  levelSel.disabled=v;
+  thinkSel.disabled=v;
+  inputLocked = v;
+}
+
 function resetGame(){
   board=makeBoard();
   history=[];
   gameOver=false;
   current=HUMAN;
-  setStatus("準備OK");
+  setStatus("あなたの手番");
   nodeText.textContent="0";
   depthText.textContent="-";
   pvText.textContent="-";
-  draw();
+  rebuildPieces();
   updateTurnPill();
 }
+
 function undoMove(){
   if(history.length===0) return;
   if(gameOver){ gameOver=false; }
-  // undo last move (maybe AI)
+
   const m1=history.pop();
   board[m1.z][m1.y][m1.x]=EMPTY;
   current=m1.player;
-  // if last was AI, also undo human so turn returns to human nicely
+
   if(current===AI && history.length>0){
     const m2=history.pop();
     board[m2.z][m2.y][m2.x]=EMPTY;
@@ -178,17 +195,10 @@ function undoMove(){
   nodeText.textContent="0";
   depthText.textContent="-";
   pvText.textContent="-";
-  draw();
+  rebuildPieces();
   updateTurnPill();
 }
 
-function setStatus(t){ statusText.textContent=t; }
-function updateTurnPill(){
-  if(gameOver){ turnPill.textContent="Game Over"; return; }
-  turnPill.textContent = "Turn: " + (current===HUMAN?"あなた":"AI");
-}
-
-// gravity drop: returns z or -1 if full
 function dropZ(b,x,y){
   for(let z=0; z<N; z++){
     if(b[z][y][x]===EMPTY) return z;
@@ -215,16 +225,12 @@ const DIRS = [];
     for(let dy=-1; dy<=1; dy++){
       for(let dz=-1; dz<=1; dz++){
         if(dx===0&&dy===0&&dz===0) continue;
-        // normalize sign: make first nonzero positive
         let ndx=dx, ndy=dy, ndz=dz;
         if(ndx!==0){ if(ndx<0){ ndx=-ndx; ndy=-ndy; ndz=-ndz; } }
         else if(ndy!==0){ if(ndy<0){ ndx=-ndx; ndy=-ndy; ndz=-ndz; } }
         else { if(ndz<0){ ndx=-ndx; ndy=-ndy; ndz=-ndz; } }
         const key=`${ndx},${ndy},${ndz}`;
-        if(!seen.has(key)){
-          seen.add(key);
-          DIRS.push([ndx,ndy,ndz]);
-        }
+        if(!seen.has(key)){ seen.add(key); DIRS.push([ndx,ndy,ndz]); }
       }
     }
   }
@@ -242,11 +248,8 @@ const LINES = [];
         cells.push([xx,yy,zz]);
       }
       if(cells.length===4){
-        // avoid duplicates by canonical start: previous cell out of bounds
         const px=x-dx, py=y-dy, pz=z-dz;
-        if(!inBounds(px,py,pz)){
-          LINES.push(cells);
-        }
+        if(!inBounds(px,py,pz)) LINES.push(cells);
       }
     }
   }
@@ -271,7 +274,6 @@ function isFull(b){
   }
   return true;
 }
-
 function legalMoves(b){
   const moves=[];
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
@@ -280,15 +282,13 @@ function legalMoves(b){
   return moves;
 }
 
-/** --- AI (negamax + alpha-beta + iterative deepening + TT) --- **/
+/* --- AI (negamax + alpha-beta + iterative deepening + TT) --- */
 
 // Zobrist hashing
 const Z = (function(){
-  // Z[player][z][y][x]  player:1..2
   const arr=[null,[],[]];
   let seed=0x9e3779b9;
   function rnd32(){
-    // xorshift
     seed ^= (seed<<13)>>>0;
     seed ^= (seed>>>17)>>>0;
     seed ^= (seed<<5)>>>0;
@@ -321,15 +321,13 @@ function hashBoard(b, turnPlayer){
   return h;
 }
 
-// evaluation: line-based (counts in each 4-line)
 function evalBoard(b){
-  // terminal
   const w=checkWinner(b);
   if(w===AI) return 1000000;
   if(w===HUMAN) return -1000000;
   let score=0;
 
-  // Favor center-ish columns (x,y near 1.5)
+  // center preference
   for(let z=0;z<N;z++)for(let y=0;y<N;y++)for(let x=0;x<N;x++){
     const v=b[z][y][x];
     if(v===EMPTY) continue;
@@ -340,7 +338,7 @@ function evalBoard(b){
     score += (v===AI? +wgt : -wgt);
   }
 
-  // Line potentials
+  // line potentials
   for(const line of LINES){
     let a=0, h=0;
     for(const [x,y,z] of line){
@@ -348,9 +346,8 @@ function evalBoard(b){
       if(v===AI) a++;
       else if(v===HUMAN) h++;
     }
-    if(a>0 && h>0) continue; // blocked
+    if(a>0 && h>0) continue;
     if(a===0 && h===0) continue;
-    // weights for 1/2/3-in-line
     const W=[0, 12, 70, 550];
     if(a>0) score += W[a];
     else score -= W[h];
@@ -358,16 +355,11 @@ function evalBoard(b){
   return Math.round(score);
 }
 
-// Transposition table
-// entry: {depth, flag, value, bestMove:{x,y}}  flag:0 exact,1 lower,2 upper
 const TT = new Map();
-
 let aiNodes=0;
 let stopAt=0;
-let lastPV=[];
 
 function orderMoves(b, moves){
-  // try center first, then by immediate win/block, then heuristic quick eval
   const scored=[];
   for(const m of moves){
     let s=0;
@@ -375,13 +367,11 @@ function orderMoves(b, moves){
     const cy = 1.5 - Math.abs(1.5-m.y);
     s += (cx+cy)*10;
 
-    // immediate win?
     const mvA=playMove(b,m.x,m.y,AI);
     if(mvA){
       if(checkWinner(b)===AI) s += 100000;
       undoOnBoard(b,mvA);
     }
-    // immediate block?
     const mvH=playMove(b,m.x,m.y,HUMAN);
     if(mvH){
       if(checkWinner(b)===HUMAN) s += 90000;
@@ -413,10 +403,8 @@ function negamax(b, depth, alpha, beta, turnPlayer){
   let bestMove=null;
   let bestVal=-Infinity;
 
-  let moves=legalMoves(b);
-  moves=orderMoves(b, moves);
+  let moves=orderMoves(b, legalMoves(b));
 
-  // Use TT move first if exists
   if(tt && tt.bestMove){
     const idx=moves.findIndex(m=>m.x===tt.bestMove.x && m.y===tt.bestMove.y);
     if(idx>0){
@@ -425,6 +413,7 @@ function negamax(b, depth, alpha, beta, turnPlayer){
     }
   }
 
+  const alpha0 = alpha;
   for(const m of moves){
     const mv=playMove(b,m.x,m.y,turnPlayer);
     if(!mv) continue;
@@ -435,28 +424,21 @@ function negamax(b, depth, alpha, beta, turnPlayer){
     if(res.timeout) return {value: bestVal, move: bestMove, timeout:true};
 
     const val = -res.value;
-    if(val>bestVal){
-      bestVal=val;
-      bestMove=m;
-    }
+    if(val>bestVal){ bestVal=val; bestMove=m; }
     alpha=Math.max(alpha, bestVal);
-    if(alpha>=beta) break; // cut
+    if(alpha>=beta) break;
   }
 
-  // store TT
-  let flag=0;
-  if(bestVal<=alpha) flag=2; // upper (note: alpha has moved; rough but ok)
-  if(bestVal>=beta) flag=1;  // lower
-  // Better: use original alpha0; keep simple but stable-ish:
-  // We'll store exact if inside bounds heuristically
-  TT.set(h, {depth, flag:0, value:bestVal, bestMove});
-
+  // store TT with proper bound flag
+  let flag=0; // exact
+  if(bestVal<=alpha0) flag=2; // upper
+  else if(bestVal>=beta) flag=1; // lower
+  TT.set(h, {depth, flag, value:bestVal, bestMove});
   return {value: bestVal, move: bestMove, timeout:false};
 }
 
 async function aiTurn(){
-  if(gameOver) return;
-  if(current!==AI) return;
+  if(gameOver || current!==AI) return;
 
   const maxDepth = parseInt(levelSel.value,10);
   const thinkMs = parseInt(thinkSel.value,10);
@@ -468,278 +450,219 @@ async function aiTurn(){
   nodeText.textContent="0";
   depthText.textContent="-";
   pvText.textContent="-";
-  lastPV=[];
 
-  const start=performance.now();
-  stopAt = start + thinkMs;
+  stopAt = performance.now() + thinkMs;
 
   let best=null;
   let bestVal=-Infinity;
-  // iterative deepening
+
   for(let d=1; d<=maxDepth; d++){
-    const alpha=-Infinity, beta=Infinity;
-    const res = negamax(board, d, alpha, beta, AI);
+    const res = negamax(board, d, -Infinity, Infinity, AI);
     nodeText.textContent = String(aiNodes);
     if(res.timeout) break;
     if(res.move){
       best=res.move;
       bestVal=res.value;
       depthText.textContent=String(d);
-      // PV-like: show best move column
       pvText.textContent=`(${best.x+1},${best.y+1}) val=${bestVal}`;
     }
-    // yield to UI
     await new Promise(r=>setTimeout(r,0));
   }
 
   if(!best){
-    // fallback: random legal
     const moves=legalMoves(board);
     best=moves[Math.floor(Math.random()*moves.length)];
   }
 
   const mv=playMove(board,best.x,best.y,AI);
   history.push(mv);
-  draw();
+
+  rebuildPieces();
 
   const w=checkWinner(board);
-  if(w===AI){
-    gameOver=true; setStatus("AIの勝ち"); updateTurnPill(); disableInput(false); return;
-  }
-  if(isFull(board)){
-    gameOver=true; setStatus("引き分け"); updateTurnPill(); disableInput(false); return;
-  }
+  if(w===AI){ gameOver=true; setStatus("AIの勝ち"); updateTurnPill(); disableInput(false); return; }
+  if(isFull(board)){ gameOver=true; setStatus("引き分け"); updateTurnPill(); disableInput(false); return; }
+
   current=HUMAN;
   setStatus("あなたの手番");
   updateTurnPill();
   disableInput(false);
 }
 
-function disableInput(v){
-  cv.style.pointerEvents = v? "none":"auto";
-  resetBtn.disabled=v;
-  undoBtn.disabled=v;
-  levelSel.disabled=v;
-  thinkSel.disabled=v;
-}
+/* ===============================
+   3D表示（木の台＋太い棒＋球＋回転）
+   =============================== */
+const container = document.getElementById("view3d");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b1020);
 
-/** --- Rendering (pseudo 3D) --- **/
-const geom = {
-  originX: 210, originY: 140,
-  cell: 95,
-  layerDrop: 28, // height spacing in screen
-  skewX: 46,
-  skewY: 26,
-};
+const camera = new THREE.PerspectiveCamera(45, container.clientWidth/container.clientHeight, 0.1, 200);
+camera.position.set(10, 11, 13);
 
-// Map column (x,y) to screen base point (top of column)
-function colToScreen(x,y){
-  const gx=geom.originX + x*geom.cell + y*geom.skewX;
-  const gy=geom.originY + y*geom.cell*0.72 - x*geom.skewY;
-  return {gx, gy};
-}
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setSize(container.clientWidth, container.clientHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+container.appendChild(renderer.domElement);
 
-// Precompute clickable areas for columns
-let colHit=[];
-function rebuildHit(){
-  colHit=[];
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-    const p=colToScreen(x,y);
-    // diamond-ish area
-    const r=40;
-    colHit.push({
-      x,y,
-      poly:[
-        {x:p.gx, y:p.gy-r},
-        {x:p.gx+r, y:p.gy},
-        {x:p.gx, y:p.gy+r},
-        {x:p.gx-r, y:p.gy},
-      ]
-    });
+// Lights
+scene.add(new THREE.HemisphereLight(0xcfd8ff, 0x101018, 0.9));
+const dir = new THREE.DirectionalLight(0xffffff, 1.25);
+dir.position.set(9, 16, 7);
+dir.castShadow = true;
+dir.shadow.mapSize.set(1024, 1024);
+scene.add(dir);
+
+// Controls (回転)
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.target.set(0, 2.4, 0);
+controls.minDistance = 10;
+controls.maxDistance = 26;
+controls.maxPolarAngle = Math.PI * 0.52;
+
+// Materials
+const wood = new THREE.MeshStandardMaterial({ color: 0xd7b98e, roughness: 0.65, metalness: 0.0 });
+const pegMat = new THREE.MeshStandardMaterial({ color: 0xcaa77a, roughness: 0.55, metalness: 0.05 });
+const p1Mat  = new THREE.MeshStandardMaterial({ color: 0xf5c542, roughness: 0.35, metalness: 0.05 });
+const p2Mat  = new THREE.MeshStandardMaterial({ color: 0x151515, roughness: 0.45, metalness: 0.15 });
+
+// Base
+const base = new THREE.Mesh(new THREE.BoxGeometry(8.6, 0.6, 8.6), wood);
+base.position.y = -0.3;
+base.receiveShadow = true;
+scene.add(base);
+
+// Layout
+const spacing = 2.0;
+const start = -3.0;
+const pegH = 7.4;
+const pegR = 0.20;
+const ballR = 0.58;
+const layerStep = 1.45;
+const y0 = 0.55;
+
+// Pegs + tap targets
+const pegMeshes = [];
+const targetMeshes = [];
+const pegGeo = new THREE.CylinderGeometry(pegR, pegR, pegH, 20);
+const targetGeo = new THREE.CylinderGeometry(0.65, 0.65, 0.25, 20); // クリックしやすい“上面”
+const targetMat = new THREE.MeshBasicMaterial({ transparent:true, opacity:0.0 }); // 見えない
+
+for (let y=0; y<4; y++){
+  for (let x=0; x<4; x++){
+    const peg = new THREE.Mesh(pegGeo, pegMat);
+    peg.castShadow = true;
+    peg.position.set(start + x*spacing, pegH/2 - 0.05, start + y*spacing);
+    scene.add(peg);
+    pegMeshes.push(peg);
+
+    const tgt = new THREE.Mesh(targetGeo, targetMat);
+    tgt.position.set(start + x*spacing, pegH + 0.20, start + y*spacing);
+    tgt.userData = { colX:x, colY:y };
+    scene.add(tgt);
+    targetMeshes.push(tgt);
   }
 }
 
-function pointInPoly(px,py,poly){
-  let c=false;
-  for(let i=0,j=poly.length-1;i<poly.length;j=i++){
-    const xi=poly[i].x, yi=poly[i].y;
-    const xj=poly[j].x, yj=poly[j].y;
-    const intersect = ((yi>py)!==(yj>py)) && (px < (xj-xi)*(py-yi)/(yj-yi+1e-9)+xi);
-    if(intersect) c=!c;
-  }
-  return c;
-}
+// Pieces group
+const piecesGroup = new THREE.Group();
+scene.add(piecesGroup);
 
-function draw(){
-  const W=cv.width, H=cv.height;
-  ctx.clearRect(0,0,W,H);
+const sphereGeo = new THREE.SphereGeometry(ballR, 28, 28);
 
-  // title-ish glow
-  ctx.save();
-  ctx.globalAlpha=0.22;
-  ctx.fillStyle="#7c5cff";
-  ctx.beginPath(); ctx.ellipse(W*0.28,H*0.10,220,70,0,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle="#66d9ef";
-  ctx.beginPath(); ctx.ellipse(W*0.72,H*0.22,260,90,0,0,Math.PI*2); ctx.fill();
-  ctx.restore();
+function rebuildPieces(){
+  while(piecesGroup.children.length) piecesGroup.remove(piecesGroup.children[0]);
 
-  // draw columns back-to-front for depth
-  const order=[];
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-    order.push({x,y, key:(x+y*1.8)});
-  }
-  order.sort((a,b)=>a.key-b.key);
+  for(let z=0; z<4; z++){
+    for(let y=0; y<4; y++){
+      for(let x=0; x<4; x++){
+        const v = board[z][y][x];
+        if(v===0) continue;
 
-  // base grid
-  for(const c of order){
-    drawColumn(c.x,c.y);
-  }
+        const m = (v===1) ? p1Mat : p2Mat;
+        const s = new THREE.Mesh(sphereGeo, m);
+        s.castShadow = true;
 
-  // pieces: draw by increasing z for same column, but columns already depth sorted helps
-  for(const c of order){
-    for(let z=N-1; z>=0; z--){
-      const v=board[z][c.y][c.x];
-      if(v!==EMPTY) drawPiece(c.x,c.y,z,v);
+        const yy = y0 + z*layerStep;
+        s.position.set(start + x*spacing, yy, start + y*spacing);
+        piecesGroup.add(s);
+      }
     }
   }
-
-  // if gameover show overlay
-  if(gameOver){
-    ctx.save();
-    ctx.fillStyle="rgba(0,0,0,.35)";
-    ctx.fillRect(0,0,W,H);
-    ctx.fillStyle="rgba(255,255,255,.92)";
-    ctx.font="900 46px system-ui, -apple-system, Segoe UI, sans-serif";
-    ctx.textAlign="center";
-    ctx.fillText(statusText.textContent, W/2, H/2);
-    ctx.restore();
-  }
 }
 
-function drawColumn(x,y){
-  const p=colToScreen(x,y);
-  const topY = p.gy;
-  const baseY = p.gy + (N-1)*geom.layerDrop + 140;
+// Tap vs Drag判定（回転と置く動作の両立）
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+let inputLocked = false;
 
-  // vertical pillar
-  ctx.save();
-  ctx.strokeStyle="rgba(255,255,255,.10)";
-  ctx.lineWidth=2;
-  ctx.beginPath();
-  ctx.moveTo(p.gx, topY);
-  ctx.lineTo(p.gx, baseY);
-  ctx.stroke();
+let downX=0, downY=0, downT=0;
+renderer.domElement.addEventListener("pointerdown", (ev)=>{
+  downX = ev.clientX; downY = ev.clientY; downT = performance.now();
+}, {passive:true});
 
-  // top diamond (click target)
-  ctx.fillStyle="rgba(255,255,255,.04)";
-  ctx.strokeStyle="rgba(255,255,255,.12)";
-  ctx.lineWidth=1.5;
-  const r=40;
-  ctx.beginPath();
-  ctx.moveTo(p.gx, topY-r);
-  ctx.lineTo(p.gx+r, topY);
-  ctx.lineTo(p.gx, topY+r);
-  ctx.lineTo(p.gx-r, topY);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
+renderer.domElement.addEventListener("pointerup", (ev)=>{
+  if(inputLocked || gameOver || current!==HUMAN) return;
 
-  // show column fullness
-  const z=dropZ(board,x,y);
-  ctx.fillStyle = (z<0) ? "rgba(255,80,80,.45)" : "rgba(124,92,255,.25)";
-  ctx.beginPath(); ctx.arc(p.gx, topY, 5, 0, Math.PI*2); ctx.fill();
+  const dx = Math.abs(ev.clientX - downX);
+  const dy = Math.abs(ev.clientY - downY);
+  const dt = performance.now() - downT;
 
-  // label
-  ctx.fillStyle="rgba(255,255,255,.28)";
-  ctx.font="12px system-ui, -apple-system";
-  ctx.textAlign="center";
-  ctx.fillText(`${x+1},${y+1}`, p.gx, topY+62);
-  ctx.restore();
-}
+  // 「ほぼ動かさず短時間」ならクリック扱い（回転ドラッグと区別）
+  if(dx>10 || dy>10 || dt>450) return;
 
-function drawPiece(x,y,z,player){
-  const p=colToScreen(x,y);
-  const yy = p.gy + (N-1 - z)*geom.layerDrop + 110;
-  const xx = p.gx;
+  const rect = renderer.domElement.getBoundingClientRect();
+  const x = (ev.clientX - rect.left) / rect.width;
+  const y = (ev.clientY - rect.top) / rect.height;
+  pointer.x = x * 2 - 1;
+  pointer.y = -(y * 2 - 1);
 
-  ctx.save();
-  // shadow
-  ctx.globalAlpha=0.35;
-  ctx.fillStyle="#000";
-  ctx.beginPath();
-  ctx.ellipse(xx+8,yy+12,26,10,0,0,Math.PI*2);
-  ctx.fill();
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObjects(targetMeshes, false);
+  if(!hits.length) return;
 
-  // piece body
-  ctx.globalAlpha=1;
-  const grad=ctx.createRadialGradient(xx-10,yy-10,6, xx,yy,34);
-  if(player===HUMAN){
-    grad.addColorStop(0,"rgba(255,245,210,1)");
-    grad.addColorStop(0.5,"rgba(255,209,102,1)");
-    grad.addColorStop(1,"rgba(160,110,10,1)");
-  }else{
-    grad.addColorStop(0,"rgba(220,250,255,1)");
-    grad.addColorStop(0.5,"rgba(102,217,239,1)");
-    grad.addColorStop(1,"rgba(10,90,120,1)");
-  }
-  ctx.fillStyle=grad;
-  ctx.strokeStyle="rgba(255,255,255,.16)";
-  ctx.lineWidth=2;
-  ctx.beginPath();
-  ctx.arc(xx,yy,28,0,Math.PI*2);
-  ctx.fill();
-  ctx.stroke();
+  const tgt = hits[0].object;
+  const cx = tgt.userData.colX;
+  const cy = tgt.userData.colY;
 
-  // highlight
-  ctx.globalAlpha=0.28;
-  ctx.fillStyle="#fff";
-  ctx.beginPath();
-  ctx.arc(xx-10,yy-12,9,0,Math.PI*2);
-  ctx.fill();
+  const mv = playMove(board, cx, cy, HUMAN);
+  if(!mv) return;
 
-  ctx.restore();
-}
+  history.push(mv);
+  rebuildPieces();
 
-rebuildHit();
-draw();
-updateTurnPill();
-setStatus("あなたの手番");
+  const w = checkWinner(board);
+  if(w===HUMAN){ gameOver=true; setStatus("あなたの勝ち"); updateTurnPill(); return; }
+  if(isFull(board)){ gameOver=true; setStatus("引き分け"); updateTurnPill(); return; }
 
-// click handling
-cv.addEventListener('pointerdown', (ev)=>{
-  if(gameOver) return;
-  if(current!==HUMAN) return;
+  current = AI;
+  updateTurnPill();
+  aiTurn();
+}, {passive:true});
 
-  const rect=cv.getBoundingClientRect();
-  const px = (ev.clientX-rect.left) * (cv.width/rect.width);
-  const py = (ev.clientY-rect.top) * (cv.height/rect.height);
-
-  // find hit column
-  for(const h of colHit){
-    if(pointInPoly(px,py,h.poly)){
-      const mv=playMove(board,h.x,h.y,HUMAN);
-      if(!mv) return;
-      history.push(mv);
-      draw();
-
-      const w=checkWinner(board);
-      if(w===HUMAN){
-        gameOver=true; setStatus("あなたの勝ち"); updateTurnPill(); return;
-      }
-      if(isFull(board)){
-        gameOver=true; setStatus("引き分け"); updateTurnPill(); return;
-      }
-      current=AI;
-      updateTurnPill();
-      aiTurn();
-      return;
-    }
-  }
+// Resize
+window.addEventListener("resize", ()=>{
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  camera.aspect = w/h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w,h);
 });
 
-// resize: keep hit areas consistent (fixed canvas size but responsive CSS)
-window.addEventListener('resize', ()=>{ /* no-op; hit uses canvas coords */ });
+// Render loop
+function animate(){
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
 
+/* 初期化 */
+setStatus("あなたの手番");
+updateTurnPill();
+rebuildPieces();
 </script>
 </body>
 </html>
+
